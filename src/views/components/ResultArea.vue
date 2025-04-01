@@ -101,7 +101,7 @@ const copyText = (text) => {
       color: #333;
 
       .result-item {
-        padding: 10px 0;
+        padding: 20px 0;
         position: relative;
         display: flex;
         align-items: center;

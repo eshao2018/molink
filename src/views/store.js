@@ -6,7 +6,7 @@ export const inputImg = ref('')
 export const inputImgText = ref('')
 export const options = ref({
   humor: "偶尔玩梗",
-  style: "阴阳怪气"
+  style: "😏阴阳怪气"
   // breakdown_strategy: ""
 })
 

@@ -16,8 +16,9 @@
     <div class="control-item">
       <div class="label">语言风格</div>
       <el-button-group>
-        <el-button v-for="style in ['平平淡淡', '阴阳怪气', '毒舌嘲讽', '硬核怼人', '稚气未脱', '敷衍摆烂', '暴力拆解', '意识流', '有理有据']" :key="style"
-          :type="options.style === style ? 'primary' : 'default'" @click="options.style = style">
+        <el-button
+          v-for="style in ['🙂平平淡淡', '😏阴阳怪气', '🤡毒舌嘲讽', '🔨硬核怼人', '🍭稚气未脱', '😴敷衍摆烂', '💣暴力拆解', '🌀意识流', '🔍有理有据', '🌪️顾左右而言他']"
+          :key="style" :type="options.style === style ? 'primary' : 'default'" @click="options.style = style">
           {{ style }}
         </el-button>
       </el-button-group>
