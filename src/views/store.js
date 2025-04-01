@@ -93,6 +93,7 @@ export async function getReply() {
 
     for await (const chunk of completion) {
       const content = chunk.choices[0]?.delta?.content || ''
+      console.log(content)
       resultText.value += content.replace(/[^\u4e00-\u9fa5，:。]/g, '')
       resultStr += content
     }

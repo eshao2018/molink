@@ -10,12 +10,14 @@
       :loading="loading">
       生成回复
     </el-button>
+    <UseCases />
   </div>
 </template>
 <script setup>
 import InputArea from './components/InputArea.vue';
 import ControlPanel from './components/ControlPanel.vue';
 import ResultArea from './components/ResultArea.vue';
+import UseCases from './components/UseCases.vue';
 
 import { getReply, inputText, inputImg, loading } from './store'
 </script>
@@ -68,7 +70,7 @@ import { getReply, inputText, inputImg, loading } from './store'
   .btn {
     width: 100%;
     margin: 30px auto;
-    margin-bottom: 20vh;
+    margin-bottom: 25vh;
     border-radius: 10px;
     padding: 25px;
     box-sizing: border-box;

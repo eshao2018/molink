@@ -6,6 +6,7 @@
       </keep-alive>
     </router-view>
     <div class="version">v1.0.0</div>
+    <div id="google_translate_element"></div>
   </div>
 </template>
 <script setup lang="ts">
@@ -28,5 +29,13 @@
     color: #fff;
     z-index: 1;
   }
+}
+
+#google_translate_element {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 15px;
+  backdrop-filter: blur(10px);
+  min-height: 50px;
 }
 </style>
