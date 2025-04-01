@@ -13,7 +13,9 @@
           </div>
           <div class="case-output">
             <span class="label">智能生成：</span>
-            <p>"《2023交通报告》显示男司机事故率高出23%，您这结论比驾校教练还专业呢👍"</p>
+            <p>
+              "《2023交通报告》显示男司机事故率高出23%，您这结论比驾校教练还专业呢👍"
+            </p>
           </div>
         </div>
       </div>
@@ -29,7 +31,9 @@
           </div>
           <div class="case-output">
             <span class="label">智能生成：</span>
-            <p>"凡尔赛文学新教材有了！建议书名《从入门到精通：如何优雅地炫耀》😂"</p>
+            <p>
+              "凡尔赛文学新教材有了！建议书名《从入门到精通：如何优雅地炫耀》😂"
+            </p>
           </div>
         </div>
       </div>
@@ -45,7 +49,9 @@
           </div>
           <div class="case-output">
             <span class="label">智能生成：</span>
-            <p>"难怪气质特别！是喜欢村上春树那种孤独感，还是《囚徒健身》的硬核派？💪"</p>
+            <p>
+              "难怪气质特别！是喜欢村上春树那种孤独感，还是《囚徒健身》的硬核派？💪"
+            </p>
           </div>
         </div>
       </div>
@@ -61,7 +67,9 @@
           </div>
           <div class="case-output">
             <span class="label">智能生成：</span>
-            <p>"妈，我正按您的标准努力找呢！上次张阿姨介绍的姑娘，这周末就约咖啡☕"</p>
+            <p>
+              "妈，我正按您的标准努力找呢！上次张阿姨介绍的姑娘，这周末就约咖啡☕"
+            </p>
           </div>
         </div>
       </div>
@@ -73,13 +81,14 @@
 .use-cases {
   position: relative;
   margin: 24px 0;
+  margin-bottom: 60px;
 
   .section-title {
     font-size: 28px;
     font-weight: bold;
     text-align: center;
     margin-bottom: 30px;
-    background: linear-gradient(45deg, #FF9800, #FF5722);
+    background: linear-gradient(45deg, #ff9800, #ff5722);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -112,7 +121,6 @@
     }
 
     .case-content {
-
       .case-input,
       .case-output {
         margin-bottom: 12px;

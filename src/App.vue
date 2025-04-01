@@ -1,16 +1,16 @@
 <template>
   <div class="layout">
+    <Navbar />
     <router-view v-slot="{ Component }">
       <keep-alive>
         <component :is="Component" class="page" />
       </keep-alive>
     </router-view>
-    <div class="version">v1.0.0</div>
-    <div id="google_translate_element"></div>
+    <div class="version">v.1.0.0</div>
   </div>
 </template>
 <script setup lang="ts">
-
+import Navbar from './components/Navbar.vue';
 </script>
 <style lang="less" scoped>
 .layout {
@@ -29,13 +29,5 @@
     color: #fff;
     z-index: 1;
   }
-}
-
-#google_translate_element {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 15px;
-  backdrop-filter: blur(10px);
-  min-height: 50px;
 }
 </style>

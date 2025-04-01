@@ -22,6 +22,10 @@
       </div>
     </div>
   </div>
+  <div class="context">
+    <el-input placeholder="简短描述语境（可选）" v-model="contextText" :maxlength="50" clearable show-word-limit
+      type="text"></el-input>
+  </div>
   <el-dialog v-model="dialogVisible" fullscreen append-to-body style="padding:0;border:none">
     <div style="height: 100vh;width:100vw;display: flex;align-items: center;justify-content: center;">
       <Cropper :src="inputImg" @change="({ canvas }) => cropperedImgCanvas = canvas" :aspectRatio="1" :crop="true" />
@@ -35,7 +39,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { inputText, inputImg } from '../store'
+import { inputText, inputImg, contextText } from '../store'
 import { Close, Picture } from '@element-plus/icons-vue'
 import { Cropper } from 'vue-advanced-cropper'
 import 'vue-advanced-cropper/dist/style.css';
@@ -163,6 +167,21 @@ async function handleInputImg(file) {
     height: 8px;
     border-radius: 4px;
     transition: background 0.3s ease;
+  }
+}
+
+.context {
+  padding: 15px;
+  border-radius: 10px;
+  background-color: #fff;
+  margin-bottom: 15px;
+
+  &:deep(.el-input) {
+    .el-input__wrapper {
+      padding: 0;
+      box-shadow: none;
+      border: none;
+    }
   }
 }
 </style>

@@ -10,6 +10,7 @@
       :loading="loading">
       生成回复
     </el-button>
+    <div class="ad"></div>
     <UseCases />
   </div>
 </template>
@@ -70,7 +71,6 @@ import { getReply, inputText, inputImg, loading } from './store'
   .btn {
     width: 100%;
     margin: 30px auto;
-    margin-bottom: 25vh;
     border-radius: 10px;
     padding: 25px;
     box-sizing: border-box;
@@ -96,6 +96,11 @@ import { getReply, inputText, inputImg, loading } from './store'
       cursor: not-allowed;
       opacity: 0.5;
     }
+  }
+
+  .ad {
+    width: 100%;
+    height: 25vh;
   }
 
   @media (min-width: 768px) {

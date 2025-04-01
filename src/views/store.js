@@ -9,6 +9,7 @@ export const options = ref({
   style: "😏阴阳怪气"
   // breakdown_strategy: ""
 })
+export const contextText = ref('')
 
 export const result = ref([])
 export const resultText = ref('')
@@ -80,6 +81,9 @@ export async function getReply() {
 
           [输出格式]
           - 输出格式为JSON数组，数组元素为字符串，每个字符串为一条回复；
+
+          [当前对话语境]
+          - ${contextText.value}
 
           [当前任务]
           基于以下对方的内容，用第一人称生成3条符合要求的回复：
