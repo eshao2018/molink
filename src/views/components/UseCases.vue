@@ -8,13 +8,30 @@
         <h3>网络杠精反击</h3>
         <div class="case-content">
           <div class="case-input">
-            <span class="label">挑衅言论：</span>
-            <p>"女司机就不该上路"</p>
+            <span class="label">道德绑架：</span>
+            <p>"不转不是中国人"</p>
           </div>
           <div class="case-output">
             <span class="label">智能生成：</span>
             <p>
-              "《2023交通报告》显示男司机事故率高出23%，您这结论比驾校教练还专业呢👍"
+              "哎呀~现在连爱国都要靠转发来证明了？看来我的身份证得靠朋友圈点赞数来续费了呢🇨🇳"
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="case-card">
+        <div class="case-icon">✋</div>
+        <h3>反PUA</h3>
+        <div class="case-content">
+          <div class="case-input">
+            <span class="label">领导说：</span>
+            <p>"年轻人不要总想着赚钱"</p>
+          </div>
+          <div class="case-output">
+            <span class="label">智能生成：</span>
+            <p>
+              "钱不钱的无所谓，主要是想为公司燃烧生命（战术后仰）"
             </p>
           </div>
         </div>
@@ -50,7 +67,7 @@
           <div class="case-output">
             <span class="label">智能生成：</span>
             <p>
-              "难怪气质特别！是喜欢村上春树那种孤独感，还是《囚徒健身》的硬核派？💪"
+              "读书和健身！让我想起了《肌肉男与书呆子》这本不存在的畅销书...等等，你该不会就是传说中的『举铁时在kindle上看陀思妥耶夫斯基』的稀有物种？💪"
             </p>
           </div>
         </div>
@@ -68,7 +85,7 @@
           <div class="case-output">
             <span class="label">智能生成：</span>
             <p>
-              "妈，我正按您的标准努力找呢！上次张阿姨介绍的姑娘，这周末就约咖啡☕"
+              "哎哟妈，您看今天的天气多适合种土豆啊~要不说老祖宗的二十四节气就是准呢"
             </p>
           </div>
         </div>
@@ -121,6 +138,7 @@
     }
 
     .case-content {
+
       .case-input,
       .case-output {
         margin-bottom: 12px;

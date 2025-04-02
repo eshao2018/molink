@@ -20,9 +20,7 @@
         </el-form-item>
         <el-form-item label="模型">
           <el-select v-model="aiConfigBackup.model" placeholder="请选择模型">
-            <el-option label="Pro/deepseek-ai/DeepSeek-V3" value="Pro/deepseek-ai/DeepSeek-V3" />
             <el-option label="deepseek-ai/DeepSeek-V3" value="deepseek-ai/DeepSeek-V3" />
-            <el-option label="Pro/deepseek-ai/DeepSeek-R1" value="Pro/deepseek-ai/DeepSeek-R1" />
             <el-option label="deepseek-ai/DeepSeek-R1" value="deepseek-ai/DeepSeek-R1" />
           </el-select>
         </el-form-item>
