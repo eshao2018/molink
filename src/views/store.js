@@ -64,6 +64,10 @@ export async function getTextOfImg(img) {
 }
 
 export async function getReply() {
+  if (!aiConfig.value.apiKey) {
+    ElMessage.error('请先填写API key')
+    return
+  }
   if (!inputText.value && !inputImg.value) {
     throw new Error('请输入内容')
   }
