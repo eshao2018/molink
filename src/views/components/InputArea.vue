@@ -23,7 +23,7 @@
     </div>
   </div>
   <div class="context">
-    <el-input placeholder="简短描述语境（可选）" v-model="contextText" :maxlength="50" clearable show-word-limit
+    <el-input placeholder="简短描述语境（可选）- 对方关系/谈论话题等" v-model="contextText" :maxlength="50" clearable show-word-limit
       type="text"></el-input>
   </div>
   <el-dialog v-model="dialogVisible" fullscreen append-to-body style="padding:0;border:none">

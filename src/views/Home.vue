@@ -1,6 +1,6 @@
 <template>
   <div class="home-page">
-    <h3 class="tag">🤖你的AI回复私人裁缝💬</h3>
+    <h3 class="tag">🤖你的互联网嘴替💬</h3>
     <h1 class="title">UHappyOK 你开心就好</h1>
     <h3 class="subtitle">一键生成降维打击话术，让每个杠精都哭着说"你开心就好"</h3>
     <InputArea />
@@ -10,7 +10,7 @@
       :loading="loading">
       生成回复
     </el-button>
-    <div class="ad"></div>
+    <div class="placeholder"></div>
     <UseCases />
   </div>
 </template>
@@ -98,7 +98,7 @@ import { getReply, inputText, inputImg, loading } from './store'
     }
   }
 
-  .ad {
+  .placeholder {
     width: 100%;
     height: 25vh;
   }

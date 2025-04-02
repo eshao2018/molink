@@ -1,5 +1,7 @@
 import { ref, watch } from 'vue'
 import OpenAI from 'openai'
+import { aiConfig } from '@/store/index'
+import { ElMessage } from 'element-plus'
 
 export const inputText = ref('')
 export const inputImg = ref('')
@@ -14,14 +16,15 @@ export const contextText = ref('')
 export const result = ref([])
 export const resultText = ref('')
 export const loading = ref(false)
+export const errMsg = ref('')
 
 watch(inputImg, () => {
   inputImgText.value = ''
 })
 
 const openai = new OpenAI({
-  baseURL: "https://api.siliconflow.cn/v1",
-  apiKey: "sk-ofektpulcecotamdkrvzxbvopvpwvxumyjjhjuoggvmxksyj",
+  baseURL: aiConfig.value.baseUrl,
+  apiKey: aiConfig.value.apiKey,
   dangerouslyAllowBrowser: true
 })
 
@@ -68,7 +71,7 @@ export async function getReply() {
     resultText.value = ''
     result.value = []
     const completion = await openai.chat.completions.create({
-      model: 'deepseek-ai/DeepSeek-V3',
+      model: aiConfig.value.model,
       messages: [{
         role: 'user',
         content: `
@@ -92,18 +95,22 @@ export async function getReply() {
       }],
       stream: true
     })
-
     let resultStr = ''
 
     for await (const chunk of completion) {
       const content = chunk.choices[0]?.delta?.content || ''
+      const reasoning_content = chunk.choices[0]?.delta?.reasoning_content || ''
+      if (reasoning_content) {
+        resultText.value += reasoning_content
+      }
       console.log(content)
       resultText.value += content.replace(/[^\u4e00-\u9fa5，:。]/g, '')
       resultStr += content
     }
     result.value = JSON.parse(resultStr.replace('```json', '').replace('```', ''))
   } catch (err) {
-    throw new Error(err?.message || '获取回复失败')
+    console.log(err)
+    ElMessage.error(err.message || JSON.stringify(err))
   } finally {
     loading.value = false
   }
