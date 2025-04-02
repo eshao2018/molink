@@ -22,11 +22,19 @@ watch(inputImg, () => {
   inputImgText.value = ''
 })
 
-const openai = new OpenAI({
+let openai = new OpenAI({
   baseURL: aiConfig.value.baseUrl,
   apiKey: aiConfig.value.apiKey,
   dangerouslyAllowBrowser: true
 })
+
+watch(aiConfig, () => {
+  openai = new OpenAI({
+    baseURL: aiConfig.value.baseUrl,
+    apiKey: aiConfig.value.apiKey,
+    dangerouslyAllowBrowser: true
+  })
+}, { deep: true })
 
 export async function getTextOfImg(img) {
   img = await compressImage(img)
