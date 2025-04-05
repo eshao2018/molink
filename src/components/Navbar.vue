@@ -1,33 +1,40 @@
 <template>
   <div class="navbar">
-    <div class="navbar-left">
+    <div class="navbar-left" @click="router.replace('/')">
       <img src="/icon.png" alt="logo" class="logo" />
-      <span class="app-name">UHappyOK</span>
-      <el-button class="settings-btn" @click="showSettings = true">
-        <el-icon>
+      <span class="app-name">断章取艺</span>
+    </div>
+    <div class="navbar-right">
+      <el-button class="btn" @click="showSettings = true">
+        <el-icon class="icon">
           <Setting />
         </el-icon>
       </el-button>
-    </div>
-    <div class="navbar-right">
-      <div id="google_translate_element"></div>
     </div>
 
     <el-dialog v-model="showSettings" title="AI配置" width="100%" style="max-width:500px" append-to-body>
       <el-form label-width="120px">
         <el-form-item label="Base URL">
-          <el-input v-model="aiConfigBackup.baseUrl" disabled placeholder="请输入API基础URL" />
+          <el-input v-model="aiConfigBackup.baseUrl" placeholder="请输入API基础URL" />
         </el-form-item>
         <el-form-item label="模型">
-          <el-select v-model="aiConfigBackup.model" placeholder="请选择模型">
-            <el-option label="deepseek-ai/DeepSeek-V3" value="deepseek-ai/DeepSeek-V3" />
-            <el-option label="deepseek-ai/DeepSeek-R1" value="deepseek-ai/DeepSeek-R1" />
-          </el-select>
+          <el-input v-model="aiConfigBackup.model"></el-input>
         </el-form-item>
-        <el-form-item label="API Key">
+        <el-form-item label="密钥">
           <el-input v-model="aiConfigBackup.apiKey" placeholder="请输入API Key" />
-          <span>注册 <a href="https://cloud.siliconflow.cn/i/UmLqQHN0" target="_blank" style="color:#FF5722">
-              硅基流动</a>平台API</span>
+          <span v-if="defaultKey == aiConfigBackup.apiKey">默认密钥将于2025.6.1失效，请注册 <a
+              href="https://cloud.siliconflow.cn/i/UmLqQHN0" target="_blank" style="color:#FF5722">
+              硅基流动</a>获取密钥</span>
+        </el-form-item>
+        <el-form-item label="改写说明">
+          <el-switch v-model="aiConfigBackup.hasDesc" />
+          <span style="margin-left: 10px;">(开启改写说明将增加文章生成时间)</span>
+        </el-form-item>
+        <el-form-item label="改写力度">
+          <el-select v-model="aiConfigBackup.strength">
+            <el-option value="突破原文框架，追求创意发散">突破原文框架，追求创意发散</el-option>
+            <el-option value="最小干预，最大传承">最小干预，最大传承</el-option>
+          </el-select>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -41,10 +48,12 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import { Setting } from '@element-plus/icons-vue'
-import { aiConfig } from '../store/index'
+import { aiConfig, defaultKey } from '../store/index'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const showSettings = ref(false)
 const aiConfigBackup = ref({ ...aiConfig.value })
 console.log(aiConfig.value)
@@ -82,8 +91,8 @@ const saveSettings = () => {
 }
 
 .logo {
-  width: 32px;
-  height: 32px;
+  width: 42px;
+  height: 42px;
 }
 
 .app-name {
@@ -92,8 +101,14 @@ const saveSettings = () => {
   color: #fff;
 }
 
-.settings-btn {
-  background-color: rgba(255, 255, 255, 0.5);
+.btn {
+  background-color: transparent;
+  border: none;
+
+  .icon {
+    font-size: 25px;
+    color: #fff;
+  }
 }
 
 @media (max-width: 480px) {

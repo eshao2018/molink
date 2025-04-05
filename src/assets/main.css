@@ -6,6 +6,7 @@
 
 * {
   font-family: HarmonyOS_Sans_SC_Regular !important;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -126,10 +127,14 @@ code {
 }
 
 .el-dialog {
+  width: calc(100% - 20px);
+  max-width: 750px;
   border-radius: 15px;
   background-color: rgba(0, 0, 0, 0.85);
   border: 1px solid rgba(255, 255, 255, 0.1);
   box-shadow: 0 0 30px 5px rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  color: #fff;
 
   &::before {
     content: "";
@@ -145,6 +150,9 @@ code {
       rgba(255, 255, 255, 0.4),
       transparent
     );
+  }
+  .el-dialog__title {
+    color: #ffffff;
   }
 
   .el-dialog__close {

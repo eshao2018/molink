@@ -1,114 +1,193 @@
 <template>
   <div class="home-page">
-    <h3 class="tag">🤖你的互联网嘴替💬</h3>
-    <h1 class="title">UHappyOK 你开心就好</h1>
-    <h3 class="subtitle">一键生成降维打击话术，让每个杠精都哭着说"你开心就好"</h3>
-    <InputArea />
-    <ControlPanel />
-    <ResultArea />
-    <el-button round block :class="['btn', (!inputText && !inputImg) && 'disabled']" @click="getReply"
-      :loading="loading">
-      生成回复
-    </el-button>
-    <div class="placeholder"></div>
-    <UseCases />
+    <div class="name">断其章，取乎艺</div>
+    <div class="slogan">
+      AI智能改写，一键切换散文名家文风
+    </div>
+    <div class="label">文章列表
+      <el-button class="btn" @click="router.push('/article')">写文章</el-button>
+    </div>
+    <div class="empty" v-if="!list.length">
+      🖌️砚台待磨，墨池尚温
+      <div class="explain">
+        鄙站所为，不过将旧文翻新，绝不敢无中生有，强作解人。
+        <div>文章之道，贵在真诚。若凭空捏造，徒惹人笑耳。</div>
+      </div>
+    </div>
+    <div class="list">
+      <div class="item-box" v-for="(item, index) in list">
+        <div class="item" @click="router.push(`/article?id=${item.id}`)">
+          <div class="title">{{ item.result.title }}</div>
+          <div class="desc">{{ item.result.result[0].rewrite }}</div>
+          <div class="bottom">
+            <div class="style">{{ item.style.name }}</div>
+            <div class="time">{{ new Date(item.result.savedTime).format('yyyy-M-d hh:mm:ss') }}</div>
+          </div>
+        </div>
+        <el-button class="btn" @click.stop="handleDelete(item.id, index)" circle :icon="Delete"
+          type="danger"></el-button>
+      </div>
+    </div>
   </div>
 </template>
 <script setup>
-import InputArea from './components/InputArea.vue';
-import ControlPanel from './components/ControlPanel.vue';
-import ResultArea from './components/ResultArea.vue';
-import UseCases from './components/UseCases.vue';
+import { ref, onActivated } from 'vue'
+import { useRouter } from 'vue-router'
+import { Delete } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 
-import { getReply, inputText, inputImg, loading } from './store'
+const router = useRouter()
+const list = ref([])
+
+onActivated(() => {
+  getList()
+})
+
+function getList() {
+  list.value = []
+  Object.keys(localStorage).forEach(key => {
+    if (key.includes('article-')) {
+      let t = JSON.parse(localStorage[key])
+      let firstResult = t.results[Object.keys(t.results)[0]]
+      list.value.push({
+        id: t.id,
+        style: t.style,
+        result: firstResult,
+        count: Object.keys(t.results).length,
+      })
+    }
+  })
+}
+function handleDelete(id, index) {
+  localStorage.removeItem(`article-${id}`)
+  list.value.splice(index, 1)
+  ElMessage.success('删除成功')
+}
+
 </script>
 <style lang="less" scoped>
 .home-page {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-  box-sizing: border-box;
-  padding: 1rem;
-  max-width: 1080px;
-  margin: 0 auto;
+  color: #fff;
 
-  .tag {
-    background-color: #FF572220;
-    color: #FF5722;
-    font-weight: normal;
-    border-radius: 30px;
-    font-size: 14px;
-    width: fit-content;
-    margin: 0 auto;
-    margin-top: 30px;
-    margin-bottom: 15px;
-    padding: 4px 15px;
-  }
-
-  .title {
-    font-weight: bold;
+  .name {
+    margin-top: 60px;
     font-size: 60px;
-    margin: 0;
-    text-align: center;
-    background: linear-gradient(45deg, #FF9800, #FF5722);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    text-fill-color: transparent;
-    margin-bottom: 30px;
-  }
-
-  .subtitle {
-    text-align: center;
-    margin-top: 0;
-    margin-bottom: 50px;
-    font-weight: normal;
-    color: #555;
-  }
-
-  .btn {
-    width: 100%;
-    margin: 30px auto;
-    border-radius: 10px;
-    padding: 25px;
-    box-sizing: border-box;
-    background: linear-gradient(45deg, #FF9800, #FF5722);
-    text-align: center;
-    font-size: 16px;
+    font-weight: bold;
     color: #fff;
-    transition: all .3s;
-    cursor: pointer;
-    user-select: none;
-    border: none;
-    box-shadow: none;
+    text-align: center;
+  }
 
-    &:hover {
-      opacity: 0.8;
-    }
+  .slogan {
+    margin-top: 20px;
+    font-size: 20px;
+    color: #fff;
+    opacity: 0.7;
+    text-align: center;
+  }
 
-    &:active {
-      box-shadow: none;
-    }
+  .label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 15px;
+    margin-top: 60px;
+    margin-bottom: 30px;
+    border-top: 1px solid #ffffff10;
+    padding-top: 30px;
 
-    &.disabled {
-      cursor: not-allowed;
-      opacity: 0.5;
+    .btn {
+      background-color: #FF9A3D;
+      color: #fff;
+      border: none;
     }
   }
 
-  .placeholder {
-    width: 100%;
-    height: 25vh;
+  .empty {
+    font-size: 30px;
+    text-align: center;
+    color: #ffffff80;
+    margin-top: 60px;
   }
 
-  @media (min-width: 768px) {
-    padding: 2rem;
+  .list {
+    margin-bottom: 20vh;
+    min-height: 40vh;
+
+    .item-box {
+      display: flex;
+      align-items: center;
+
+      .btn {
+        opacity: 0;
+        transition: all .3s;
+      }
+
+      &:hover {
+        .btn {
+          opacity: 1;
+        }
+      }
+    }
+
+    .item {
+      flex: 1;
+      overflow: hidden;
+      word-break: break-all;
+      padding: 15px;
+      box-sizing: border-box;
+      overflow: hidden;
+      color: #fff;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #ffffff20;
+      cursor: pointer;
+
+      &:last-child {
+        border: none;
+      }
+
+      &:hover {
+        opacity: 0.8;
+      }
+
+      .title {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+
+      .desc {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        font-size: 14px;
+        color: #999;
+        white-space: nowrap;
+        margin-bottom: 15px;
+      }
+
+      .bottom {
+        display: flex;
+        justify-content: space-between;
+        font-size: 14px;
+
+        .style {
+          color: #FF9A3D;
+          font-weight: bold;
+        }
+
+        .time {
+          color: #fff;
+          opacity: 0.5;
+        }
+      }
+    }
   }
 
-  @media (min-width: 1024px) {
-    padding: 3rem;
+  .explain {
+    text-align: center;
+    font-size: 12px;
+    color: #ffffff30;
+    margin-top: 10px;
   }
 }
 </style>

@@ -1,187 +1,239 @@
 <template>
-  <div class="input-area">
-    <div class="input-box" @dragover.prevent @drop.prevent="handleDrop">
-      <div v-if="inputImg" class="img-box">
-        <img :src="inputImg" />
-        <div class="delete" @click="inputImg = ''">
-          <el-icon>
-            <Close />
-          </el-icon>
-        </div>
+  <div class="processing" v-if="resultText">
+    <span v-for="w in resultText" :key="w">{{ w }}</span>
+  </div>
+  <el-input v-if="!result.length" v-model="inputText" :readonly="loading" class="input-area" autosize type="textarea"
+    placeholder="每一粒字都是未醒的星辰，等待被点亮..." show-word-limit maxlength="8000"></el-input>
+  <div class="conversioned" v-else>
+    <span :class="`${item.delete && 'delete'} ${item.newline && 'newLine'}`" v-for="(item, index) in result"
+      @click="showDialog(item, index)">
+      <div class="seq" v-if="!item.newline && showSeq">
+        <div class="num">{{ item.seq }}</div>
       </div>
-      <div v-else class="input-content">
-        <textarea v-model="inputText" placeholder="粘贴对方内容或拖放图片到此处..." @input="analyzeEmotion"
-          @paste="handlePaste"></textarea>
-        <el-button v-if="!inputText" class="upload-btn" @click="triggerUpload">
-          <el-icon>
-            <Picture />
-          </el-icon>
-          上传图片
-        </el-button>
-        <input ref="fileInput" type="file" accept="image/*" style="display: none" @change="handleFileSelect" />
+      {{ item.rewrite }}
+    </span>
+  </div>
+  <div class="origin" v-if="result.length">
+    <span :class="`${item.delete && 'delete'} ${item.newline && 'newLine'}`" v-for="(item, index) in result"
+      @click="showDialog(item, index)">
+      <div class="seq" v-if="!item.newline && item.origin && showSeq">
+        <div class="num">{{ item.seq }}</div>
+      </div>
+      {{ item.origin }}
+    </span>
+  </div>
+  <div class="actions" v-if="result.length">
+    <div class="savedTime" v-if="savedTime">保存于{{ new Date(savedTime).format('yyyy.MM.dd hh:mm:ss') }}</div>
+    <div v-else></div>
+    <div style="display: flex;align-items: center"> 显示序号 <el-switch v-model="showSeq"
+        style="margin-left: 5px;"></el-switch></div>
+  </div>
+  <el-button v-if="result.length" class="save-btn" @click="handleSave">保存</el-button>
+  <el-dialog v-model="dialogVisible" width="50%" :close-on-click-modal="false">
+    <div style="max-height: 70vh;overflow: auto;">
+      <div style="margin-bottom: 10px;">原句：</div>
+      <el-input v-model="currentItem.origin" maxlength="200" placeholder="自由发挥"
+        input-style="background: rgba(255,255,255,0.1);box-shadow:none;color:#fff" type="textarea" autosize></el-input>
+      <div style="margin-top: 20px;margin-bottom: 10px;">改写：</div>
+      <el-input v-model="currentItem.rewrite" maxlength="200" autosize @input="currentItem.retry = true"
+        input-style="background: rgba(255,255,255,0.1);box-shadow:none;color:#fff" type="textarea"></el-input>
+      <div style="margin-top: 20px;" v-if="currentItem.desc">
+        <span class="label">改写说明：</span>
+        {{ currentItem.desc }}
       </div>
     </div>
-  </div>
-  <div class="context">
-    <el-input placeholder="简短描述语境（可选）- 对方关系/谈论话题等" v-model="contextText" :maxlength="50" clearable show-word-limit
-      type="text"></el-input>
-  </div>
-  <el-dialog v-model="dialogVisible" fullscreen append-to-body style="padding:0;border:none">
-    <div style="height: 100vh;width:100vw;display: flex;align-items: center;justify-content: center;">
-      <Cropper :src="inputImg" @change="({ canvas }) => cropperedImgCanvas = canvas" :aspectRatio="1" :crop="true" />
-      <div @click="inputImg = cropperedImgCanvas.toDataURL('image/png'); dialogVisible = false"
-        style="z-index:9;padding:10px 30px;border-radius: 5px;background:#FF9800;color: #fff;font-size: 14px;position: absolute;bottom: 15px;right: 30px;cursor: pointer; ">
-        确定
-      </div>
-    </div>
+    <template #footer>
+      <span class="dialog-footer">
+        <el-button :disabled="loading" @click="dialogVisible = false">取消</el-button>
+        <el-button v-if="currentItem.delete" :disabled="loading" type="success" @click="handleRecover">恢复</el-button>
+        <el-button v-else :disabled="loading" type="danger" @click="handleDelete">删除</el-button>
+        <el-button :loading="loading" type="warning" @click="handleRewrite">重新改写</el-button>
+        <el-button v-if="currentItem.retry" :loading="loading" type="primary" @click="handleApplyRetry">应用</el-button>
+      </span>
+    </template>
   </el-dialog>
 </template>
-
 <script setup>
 import { ref } from 'vue'
-import { inputText, inputImg, contextText } from '../store'
-import { Close, Picture } from '@element-plus/icons-vue'
-import { Cropper } from 'vue-advanced-cropper'
-import 'vue-advanced-cropper/dist/style.css';
+import {
+  inputText, loading, result, resultText,
+  handleProcessSentence, savedTime, handleSave
+} from '../store'
 
-const fileInput = ref(null)
 const dialogVisible = ref(false)
-let cropperedImgCanvas = ''
+const currentItem = ref({})
+const showSeq = ref(false)
 
-// 将文件转换为URL
-const fileToUrl = (file) => {
-  return new Promise((resolve) => {
-    const reader = new FileReader()
-    reader.onload = (e) => resolve(e.target.result)
-    reader.readAsDataURL(file)
-  })
+const showDialog = (item, index) => {
+  currentItem.value = { ...item, index }
+  dialogVisible.value = true
 }
 
-// 处理粘贴事件
-const handlePaste = async (event) => {
-  const items = event.clipboardData.items
-  for (let item of items) {
-    if (item.type.startsWith('image/')) {
-      event.preventDefault()
-      const file = item.getAsFile()
-      handleInputImg(file)
-      break
-    }
-  }
+const handleRewrite = async () => {
+  let result = await handleProcessSentence(currentItem.value.origin || currentItem.value.rewrite)
+  currentItem.value = { ...currentItem.value, ...result, retry: true }
 }
-
-// 处理文件拖放
-const handleDrop = async (event) => {
-  const files = event.dataTransfer.files;
-  if (files.length === 0) return;
-  const file = files[0];
-  if (file.type.startsWith('image/')) {
-    handleInputImg(file)
-  } else if (file.type === 'text/plain') {
-    const text = await file.text();
-    inputText.value = text;
-  }
-};
-
-const triggerUpload = () => {
-  fileInput.value.click()
+function handleApplyRetry() {
+  result.value[currentItem.value.index].origin = currentItem.value.origin
+  result.value[currentItem.value.index].rewrite = currentItem.value.rewrite
+  dialogVisible.value = false
 }
-
-//选择图片
-const handleFileSelect = async (event) => {
-  const file = event.target.files[0]
-  handleInputImg(file)
-  event.target.value = ''
+function handleDelete() {
+  result.value[currentItem.value.index].delete = true
+  dialogVisible.value = false
 }
-async function handleInputImg(file) {
-  if (file && file.type.startsWith('image/')) {
-    const url = await fileToUrl(file)
-    inputImg.value = url
-    dialogVisible.value = true
-    inputText.value = ''
-  }
+function handleRecover() {
+  result.value[currentItem.value.index].delete = false
+  dialogVisible.value = false
 }
 </script>
-
 <style lang="less" scoped>
-.input-area {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.input-area,
+.origin {
+  position: relative;
+  background-color: #EDE0D0;
+  padding: 15px;
+  border-radius: 10px;
   width: 100%;
-  margin: 0 auto;
-  margin-bottom: 15px;
+  box-sizing: border-box;
 
-  .input-box {
-    border-radius: 12px;
-    padding: 20px;
-    background-color: #fff;
+  &:deep(textarea) {
+    resize: none;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    font-size: 16px;
+    min-height: 100px !important;
+    color: #000;
 
-    textarea {
-      width: 100%;
-      min-height: 200px;
-      border: none;
-      outline: none;
-      resize: vertical;
-      font-size: 1rem;
-      line-height: 1.5;
-      background-color: transparent;
-
-      &::placeholder {
-        color: #999;
-      }
-    }
-
-    .img-box {
-      position: relative;
-      margin: 0 auto;
-      width: 250px;
-      height: 250px;
-      border-radius: 10px;
-      overflow: hidden;
-
-      img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-      }
-
-      .delete {
-        position: absolute;
-        z-index: 2;
-        top: 0;
-        right: 0;
-        padding: 5px 10px;
-        padding-bottom: 2px;
-        font-size: 25px;
-        color: #fff;
-        cursor: pointer;
-        background-color: rgba(0, 0, 0, 0.2);
-        backdrop-filter: blur(10px);
-        border-bottom-left-radius: 20px;
-      }
+    &::placeholder {
+      color: #FF9A3D;
     }
   }
 
-  .emotion-spectrum {
-    height: 8px;
-    border-radius: 4px;
-    transition: background 0.3s ease;
+  &:deep(.el-input__count) {
+    background-color: transparent;
+    color: #FF9A3D;
   }
 }
 
-.context {
+.processing {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 10px;
+  color: #ffffff50;
+  font-size: 14px;
+  margin-bottom: 10px;
+  overflow: auto;
+
+  span {
+    animation: fade-in .5s forwards;
+  }
+}
+
+.conversioned,
+.origin {
+  font-size: 16px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 15px;
+  color: #fff;
+  cursor: pointer;
+  position: relative;
+  line-height: 28px;
+
+  .copy-btn {
+    position: absolute;
+    right: 15px;
+    top: 15px;
+  }
+
+  span {
+    transition: all .3s;
+
+    &:hover {
+      color: #FF9A3D;
+    }
+
+    &.delete {
+      text-decoration: line-through;
+      user-select: none;
+      opacity: 0.2;
+    }
+
+    &.newLine {
+      display: block;
+    }
+
+    .seq {
+      position: relative;
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      font-size: 12px;
+      color: #FF9A3D;
+      border: 1px solid #FF9A3D;
+      pointer-events: none;
+      user-select: none;
+
+      .num {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+    }
+  }
+}
+
+.origin {
+  margin-top: 10px;
+  background-color: #EDE0D0;
   padding: 15px;
   border-radius: 10px;
-  background-color: #fff;
-  margin-bottom: 15px;
+  color: #000;
 
-  &:deep(.el-input) {
-    .el-input__wrapper {
-      padding: 0;
-      box-shadow: none;
-      border: none;
+  .seq {
+    background-color: #FF9A3D;
+
+    .num {
+      color: #fff;
     }
+  }
+}
+
+.actions {
+  color: #ffffff90;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+
+  .savedTime {
+    color: #ffffff80;
+    font-size: 12px;
+  }
+}
+
+.save-btn {
+  width: 100%;
+  margin-top: 30px;
+  padding: 20px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  margin-bottom: 20vh;
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
   }
 }
 </style>

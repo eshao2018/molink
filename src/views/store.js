@@ -1,26 +1,31 @@
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import OpenAI from 'openai'
 import { aiConfig } from '@/store/index'
 import { ElMessage } from 'element-plus'
+import styleList from '@/store/style.js'
 
+//article
+export const id = ref('')
+export const style = ref(styleList[9])
+export const savedResults = ref({})
+//form-result-item
+export const resultId = ref()
 export const inputText = ref('')
-export const inputImg = ref('')
-export const inputImgText = ref('')
-export const options = ref({
-  humor: "偶尔玩梗",
-  style: "😏阴阳怪气"
-  // breakdown_strategy: ""
-})
-export const contextText = ref('')
-
+export const title = ref('')
 export const result = ref([])
+export const savedTime = ref()
+//state
 export const resultText = ref('')
+export const titleLoading = ref(false)
 export const loading = ref(false)
-export const errMsg = ref('')
 
-watch(inputImg, () => {
-  inputImgText.value = ''
-})
+try {
+  let t = localStorage['style']
+  if (t) {
+    style.value = JSON.parse(t)
+  }
+} catch { }
+
 
 let openai = new OpenAI({
   baseURL: aiConfig.value.baseUrl,
@@ -35,74 +40,131 @@ watch(aiConfig, () => {
     dangerouslyAllowBrowser: true
   })
 }, { deep: true })
+watch(style, () => {
+  localStorage['style'] = JSON.stringify(style.value)
+}, { deep: true })
 
-export async function getTextOfImg(img) {
-  img = await compressImage(img)
-  const completion = await openai.chat.completions.create({
-    model: 'deepseek-ai/deepseek-vl2',
-    temperature: 0.7,
-    top_k: 50,
-    top_p: 0.7,
-    frequency_penalty: 0,
-    messages: [{
-      role: 'user',
-      content: [
-        {
-          type: 'image_url',
-          image_url: {
-            url: await blobToBase64(img)
-          }
-        },
-        {
-          "type": "text",
-          "text": "识别图片所有文字，以及内容类型"
-        }
-      ]
-    }]
-  })
-  return completion.choices[0]?.message?.content
+export const resultPureText = computed(() => {
+  return result.value
+    .filter(item => !item.delete)
+    .map(item => item.rewrite)
+    .join('')
+})
+export function init(idParam) {
+  if (idParam) {
+    try {
+      let t = JSON.parse(localStorage[`article-${idParam}`])
+      console.log(t)
+      id.value = idParam
+      style.value = t.style
+      savedResults.value = t.results
+
+      const firstResult = t.results[Object.keys(t.results)[0]] || {}
+      resultId.value = firstResult.id
+      savedTime.value = firstResult.savedTime
+      title.value = firstResult.title
+      inputText.value = firstResult.inputText
+      result.value = firstResult.result || []
+    } catch (err) {
+      console.log(err)
+    }
+  } else {
+    id.value = new Date().getTime()
+    try {
+      style.value = JSON.parse(localStorage['style'])
+    } catch {
+      style.value = styleList[3]
+    }
+    savedResults.value = []
+    savedTime.value = ''
+    title.value = ''
+    inputText.value = ''
+    result.value = []
+  }
 }
 
-export async function getReply() {
+export function handleSave() {
+  if (resultId.value) {
+    savedTime.value = new Date().getTime()
+    savedResults.value[`${resultId.value}`] = {
+      id: resultId.value,
+      title: title.value,
+      inputText: inputText.value,
+      result: result.value,
+      savedTime: savedTime.value
+    }
+    localStorage[`article-${id.value}`] = JSON.stringify({
+      id: id.value,
+      style: style.value,
+      results: { ...savedResults.value }
+    })
+    ElMessage.success('保存成功')
+  }
+}
+export function handleRemove(rid) {
+  if (rid) {
+    delete savedResults.value[`${rid}`]
+    localStorage[`article-${id.value}`] = JSON.stringify({
+      id: id.value,
+      style: style.value,
+      results: { ...savedResults.value }
+    })
+    ElMessage.success('删除成功')
+  }
+}
+export function handleChooseResult(rid) {
+  if (rid) {
+    const t = savedResults.value[`${rid}`]
+    if (t) {
+      resultId.value = t.id
+      savedTime.value = t.savedTime
+      title.value = t.title
+      inputText.value = t.inputText
+      result.value = t.result || []
+    }
+  }
+}
+
+export async function handleProcess() {
   if (!aiConfig.value.apiKey) {
     ElMessage.error('请先填写API key')
     return
   }
-  if (!inputText.value && !inputImg.value) {
+  if (!inputText.value) {
     throw new Error('请输入内容')
   }
   try {
     loading.value = true
-    let input = inputText.value || inputImgText.value
-    if (inputImg.value && !input) {
-      input = await getTextOfImg(inputImg.value)
-      inputImgText.value = input
-    }
-    console.log(input)
-
     resultText.value = ''
+
+    resultId.value = new Date().getTime()
     result.value = []
+    title.value = ''
+    savedTime.value = ''
+
     const completion = await openai.chat.completions.create({
       model: aiConfig.value.model,
       messages: [{
         role: 'user',
         content: `
           [角色设定]
-          你是一个精通【${options.value.style}】风格的对话专家，擅长用${options.value.humor || '正常'}的语气进行交流;
+          你是一个擅长【${style.value.name}】风格的作家，文风：${style.value.style};
           当前时间：${new Date().toLocaleString()}
 
-          [安全限制]
-          - 禁止人身攻击、诽谤；
+          [要求]
+          - 不要生成无关的内容；
+          - 严格按照原文分段换行；
+          - 改写力度：${aiConfig.value.strength}
 
           [输出格式]
-          - 输出格式为JSON数组，数组元素为字符串，每个字符串为一条回复；
-
-          [当前对话语境]
-          - ${contextText.value}
+          - 输出格式为JSON对象数组，数组元素为原文和改写后的对象，每句话为一个对象；
+          - 对象格式为：{origin:"",rewrite:""${aiConfig.value.hasDesc ? ',desc:""' : ""}}；
+          - ${aiConfig.value.strength == "最小干预，最大传承" ? '严格按照原文-改写的格式输出' : ''}；
+          - 遇到换行则输出空对象；
 
           [当前任务]
-          基于以下对方的内容，用第一人称生成3条符合要求的回复：
-          ${input}
+          基于以下原文，改写生成符合要求的文章：
+          ${inputText.value}
           `
       }],
       stream: true
@@ -115,11 +177,23 @@ export async function getReply() {
       if (reasoning_content) {
         resultText.value += reasoning_content
       }
-      console.log(content)
-      resultText.value += content.replace(/[^\u4e00-\u9fa5，:。]/g, '')
+      resultText.value += content.replace(/[^\u4e00-\u9fa5，:。origin rewrite]/g, '')
       resultStr += content
     }
     result.value = JSON.parse(resultStr.replace('```json', '').replace('```', ''))
+    let seq = 1
+    result.value = result.value.map((item) => {
+      if (item.rewrite) {
+        item.seq = seq++
+      } else {
+        item.origin = '\n\r'
+        item.rewrite = '\n\r'
+        item.newline = true
+      }
+      return item
+    })
+    resultText.value = ''
+    console.log(result.value)
   } catch (err) {
     console.log(err)
     ElMessage.error(err.message || JSON.stringify(err))
@@ -128,71 +202,75 @@ export async function getReply() {
   }
 }
 
-export async function urlToBase64(url) {
+export async function handleProcessSentence(sentence) {
   try {
-    const response = await fetch(url)
-    const blob = await response.blob()
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onloadend = () => resolve(reader.result)
-      reader.onerror = reject
-      reader.readAsDataURL(blob)
+    loading.value = true
+
+    const completion = await openai.chat.completions.create({
+      model: aiConfig.value.model,
+      messages: [{
+        role: 'user',
+        content: `
+          [角色设定]
+          你是一个擅长【${style.value.name}】风格的作家，文风：${style.value.style};
+          当前时间：${new Date().toLocaleString()}
+
+          [要求]
+          - 不要生成无关的内容；
+          - 按照原文分段；
+          - 改写力度：${aiConfig.value.strength}
+
+          [输出格式]
+          - 输出格式为JSON对象；
+          - 对象格式为：{rewrite:""${aiConfig.value.hasDesc ? ',desc:""' : ""}}；
+          - 严格按照以上格式输出；
+
+          [当前任务]
+          基于以下句子，改写生成符合要求的句子：
+          ${sentence}
+          `
+      }],
     })
+    return JSON.parse(completion.choices[0].message.content.replace('```json', '').replace('```', ''))
   } catch (err) {
-    throw new Error('URL转Base64失败')
+    console.log(err)
+    ElMessage.error(err.message || JSON.stringify(err))
+  } finally {
+    loading.value = false
   }
 }
 
-export async function blobToBase64(blob) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onloadend = () => resolve(reader.result)
-    reader.onerror = reject
-    reader.readAsDataURL(blob)
-  })
-}
+export async function handleGetTitle() {
+  try {
+    titleLoading.value = true
+    const completion = await openai.chat.completions.create({
+      model: aiConfig.value.model,
+      messages: [{
+        role: 'user',
+        content: `
+          [角色设定]
+          你是一个擅长【${style.value.name}】风格的作家，文风：${style.value.style};
+          当前时间：${new Date().toLocaleString()}
 
-export async function compressImage(input, maxWidth = 750, quality = 0.8) {
-  let file;
-  if (typeof input === 'string') {
-    const response = await fetch(input);
-    file = await response.blob();
-  } else {
-    // 处理File输入
-    file = input;
+          [限制]
+          - 不要生成无关的内容；
+
+          [输出格式]
+          - 输出格式为字符串；
+
+          [当前任务]
+          基于以下文章，生成符合要求的标题：
+          ${resultPureText.value}
+          `
+      }],
+    })
+    title.value = completion.choices[0].message.content
+    console.log(title.value)
+  } catch (err) {
+    console.log(err)
+    ElMessage.error(err.message || JSON.stringify(err))
+  } finally {
+    titleLoading.value = false
   }
-
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.readAsDataURL(file)
-    reader.onload = (e) => {
-      const img = new Image()
-      img.src = e.target.result
-      img.onload = () => {
-        const canvas = document.createElement('canvas')
-        const ctx = canvas.getContext('2d')
-        let width = img.width
-        let height = img.height
-
-        if (width > maxWidth) {
-          height = Math.round((height * maxWidth) / width)
-          width = maxWidth
-        }
-
-        canvas.width = width
-        canvas.height = height
-        ctx.drawImage(img, 0, 0, width, height)
-
-        canvas.toBlob(
-          (blob) => {
-            resolve(blob)
-          },
-          'image/jpeg',
-          quality
-        )
-      }
-      img.onerror = reject
-    }
-    reader.onerror = reject
-  })
 }
+

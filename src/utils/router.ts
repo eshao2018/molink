@@ -1,4 +1,4 @@
-import { createWebHistory, createRouter, RouteRecordRaw } from "vue-router";
+import { createWebHashHistory, createRouter, RouteRecordRaw } from "vue-router";
 
 const pages = import.meta.glob("../views/**/**.vue");
 const routes: Array<RouteRecordRaw> = [];
@@ -18,7 +18,7 @@ Object.keys(pages).map(function (key: string) {
 });
 console.log(routes);
 export default createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes: [
     {
       path: "/",
