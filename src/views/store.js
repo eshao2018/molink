@@ -3,6 +3,7 @@ import OpenAI from 'openai'
 import { aiConfig } from '@/store/index'
 import { ElMessage } from 'element-plus'
 import styleList from '@/store/style.js'
+import { useRouter } from 'vue-router'
 
 //article
 export const id = ref('')
@@ -43,6 +44,13 @@ watch(aiConfig, () => {
 watch(style, () => {
   localStorage['style'] = JSON.stringify(style.value)
 }, { deep: true })
+watch(savedResults, () => {
+  localStorage[`article-${id.value}`] = JSON.stringify({
+    id: id.value,
+    style: style.value,
+    results: { ...savedResults.value }
+  })
+}, { deep: true })
 
 export const resultPureText = computed(() => {
   return result.value
@@ -52,22 +60,23 @@ export const resultPureText = computed(() => {
 })
 export function init(idParam) {
   if (idParam) {
+    let t = {}
     try {
-      let t = JSON.parse(localStorage[`article-${idParam}`])
-      console.log(t)
-      id.value = idParam
-      style.value = t.style
-      savedResults.value = t.results
+      t = JSON.parse(localStorage[`article-${idParam}`])
+    } catch { }
+    id.value = idParam
+    style.value = t.style || style.value
+    savedResults.value = t.results || {}
 
-      const firstResult = t.results[Object.keys(t.results)[0]] || {}
-      resultId.value = firstResult.id
-      savedTime.value = firstResult.savedTime
-      title.value = firstResult.title
-      inputText.value = firstResult.inputText
-      result.value = firstResult.result || []
-    } catch (err) {
-      console.log(err)
-    }
+    let firstResult = {}
+    try {
+      firstResult = t.results[Object.keys(t.results)[0]] || {}
+    } catch { }
+    resultId.value = firstResult.id || ''
+    savedTime.value = firstResult.savedTime || ''
+    title.value = firstResult.title || ''
+    inputText.value = firstResult.inputText || ''
+    result.value = firstResult.result || []
   } else {
     id.value = new Date().getTime()
     try {
@@ -80,35 +89,28 @@ export function init(idParam) {
     title.value = ''
     inputText.value = ''
     result.value = []
+    useRouter().replace('/article?id=' + id.value)
   }
 }
 
 export function handleSave() {
   if (resultId.value) {
     savedTime.value = new Date().getTime()
-    savedResults.value[`${resultId.value}`] = {
+    let t = savedResults.value
+    t[`${resultId.value}`] = {
       id: resultId.value,
       title: title.value,
       inputText: inputText.value,
       result: result.value,
       savedTime: savedTime.value
     }
-    localStorage[`article-${id.value}`] = JSON.stringify({
-      id: id.value,
-      style: style.value,
-      results: { ...savedResults.value }
-    })
+    savedResults.value = t
     ElMessage.success('保存成功')
   }
 }
 export function handleRemove(rid) {
   if (rid) {
     delete savedResults.value[`${rid}`]
-    localStorage[`article-${id.value}`] = JSON.stringify({
-      id: id.value,
-      style: style.value,
-      results: { ...savedResults.value }
-    })
     ElMessage.success('删除成功')
   }
 }

@@ -47,16 +47,25 @@ function getList() {
   list.value = []
   Object.keys(localStorage).forEach(key => {
     if (key.includes('article-')) {
-      let t = JSON.parse(localStorage[key])
-      let firstResult = t.results[Object.keys(t.results)[0]]
-      list.value.push({
-        id: t.id,
-        style: t.style,
-        result: firstResult,
-        count: Object.keys(t.results).length,
-      })
+      try {
+        let t = JSON.parse(localStorage[key])
+        let firstResult = t.results[Object.keys(t.results)[0]]
+        if (firstResult) {
+          list.value.push({
+            id: t.id,
+            style: t.style,
+            result: firstResult,
+            count: Object.keys(t.results).length,
+          })
+        } else {
+          localStorage.removeItem(key)
+        }
+      } catch (err) {
+        console.log(err)
+      }
     }
   })
+  list.value = list.value.sort((a, b) => b.result.savedTime - a.result.savedTime)
 }
 function handleDelete(id, index) {
   localStorage.removeItem(`article-${id}`)

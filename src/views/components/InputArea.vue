@@ -2,8 +2,8 @@
   <div class="processing" v-if="resultText">
     <span v-for="w in resultText" :key="w">{{ w }}</span>
   </div>
-  <el-input v-if="!result.length" v-model="inputText" :readonly="loading" class="input-area" autosize type="textarea"
-    placeholder="每一粒字都是未醒的星辰，等待被点亮..." show-word-limit maxlength="8000"></el-input>
+  <el-input :class="['input-area', loading && 'loading']" v-if="!result.length" v-model="inputText" :readonly="loading"
+    autosize type="textarea" placeholder="每一粒字都是未醒的星辰，等待被点亮..." show-word-limit maxlength="8000"></el-input>
   <div class="conversioned" v-else>
     <span :class="`${item.delete && 'delete'} ${item.newline && 'newLine'}`" v-for="(item, index) in result"
       @click="showDialog(item, index)">
@@ -29,6 +29,7 @@
         style="margin-left: 5px;"></el-switch></div>
   </div>
   <el-button v-if="result.length" class="save-btn" @click="handleSave">保存</el-button>
+  <div v-if="result.length" class="tip">⚠️不保存者，虽智者不能善其后也</div>
   <el-dialog v-model="dialogVisible" width="50%" :close-on-click-modal="false">
     <div style="max-height: 70vh;overflow: auto;">
       <div style="margin-bottom: 10px;">原句：</div>
@@ -48,7 +49,7 @@
         <el-button v-if="currentItem.delete" :disabled="loading" type="success" @click="handleRecover">恢复</el-button>
         <el-button v-else :disabled="loading" type="danger" @click="handleDelete">删除</el-button>
         <el-button :loading="loading" type="warning" @click="handleRewrite">重新改写</el-button>
-        <el-button v-if="currentItem.retry" :loading="loading" type="primary" @click="handleApplyRetry">应用</el-button>
+        <el-button v-if="currentItem.retry" :disabled="loading" type="primary" @click="handleApplyRetry">应用</el-button>
       </span>
     </template>
   </el-dialog>
@@ -96,6 +97,22 @@ function handleRecover() {
   border-radius: 10px;
   width: 100%;
   box-sizing: border-box;
+
+  &.loading {
+    &::before {
+      content: '';
+      position: absolute;
+      top: -4px;
+      left: -4px;
+      right: -4px;
+      bottom: -4px;
+      background-image: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #f7d794, #ff6b6b);
+      background-size: 400%;
+      z-index: -1;
+      border-radius: 12px;
+      animation: borderRotate 8s linear infinite;
+    }
+  }
 
   &:deep(textarea) {
     resize: none;
@@ -224,7 +241,13 @@ function handleRecover() {
   padding: 20px;
   background-color: rgba(255, 255, 255, 0.1);
   color: #fff;
-  margin-bottom: 20vh;
+}
+
+.tip {
+  text-align: center;
+  font-size: 14px;
+  color: #ffffff50;
+  margin-top: 10px;
 }
 
 @keyframes fade-in {
@@ -234,6 +257,16 @@ function handleRecover() {
 
   100% {
     opacity: 1;
+  }
+}
+
+@keyframes borderRotate {
+  0% {
+    background-position: 0% 0%;
+  }
+
+  100% {
+    background-position: 400% 0%;
   }
 }
 </style>

@@ -113,6 +113,7 @@ const handleCopy = async () => {
 </script>
 <style lang="less" scoped>
 .article-page {
+  padding-bottom: 20vh;
 
   .label {
     color: #fff;
