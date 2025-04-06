@@ -20,7 +20,7 @@
           <div class="title">{{ item.result.title }}</div>
           <div class="desc">{{ item.result.result[0].rewrite }}</div>
           <div class="bottom">
-            <div class="style">{{ item.style.name }}</div>
+            <div class="style">{{ item.result.style?.name }}</div>
             <div class="time">{{ new Date(item.result.savedTime).format('yyyy-M-d hh:mm:ss') }}</div>
           </div>
         </div>
@@ -35,6 +35,7 @@ import { ref, onActivated } from 'vue'
 import { useRouter } from 'vue-router'
 import { Delete } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 
 const router = useRouter()
 const list = ref([])
@@ -53,7 +54,6 @@ function getList() {
         if (firstResult) {
           list.value.push({
             id: t.id,
-            style: t.style,
             result: firstResult,
             count: Object.keys(t.results).length,
           })
@@ -68,9 +68,15 @@ function getList() {
   list.value = list.value.sort((a, b) => b.result.savedTime - a.result.savedTime)
 }
 function handleDelete(id, index) {
-  localStorage.removeItem(`article-${id}`)
-  list.value.splice(index, 1)
-  ElMessage.success('删除成功')
+  ElMessageBox.confirm('确定要删除吗？', '提示', {
+    confirmButtonText: '确定',
+    cancelButtonText: '取消',
+    type: 'warning',
+  }).then(() => {
+    localStorage.removeItem(`article-${id}`)
+    list.value.splice(index, 1)
+    ElMessage.success('删除成功')
+  }).catch(() => { })
 }
 
 </script>
@@ -151,13 +157,20 @@ function handleDelete(id, index) {
       margin-bottom: 10px;
       border-bottom: 1px solid #ffffff20;
       cursor: pointer;
+      transition: all .3s;
+
+      user-select: none;
 
       &:last-child {
         border: none;
       }
 
       &:hover {
-        opacity: 0.8;
+        opacity: 0.6;
+      }
+
+      &:active {
+        opacity: 0.4;
       }
 
       .title {

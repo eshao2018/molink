@@ -98,22 +98,6 @@ function handleRecover() {
   width: 100%;
   box-sizing: border-box;
 
-  &.loading {
-    &::before {
-      content: '';
-      position: absolute;
-      top: -4px;
-      left: -4px;
-      right: -4px;
-      bottom: -4px;
-      background-image: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #f7d794, #ff6b6b);
-      background-size: 400%;
-      z-index: -1;
-      border-radius: 12px;
-      animation: borderRotate 8s linear infinite;
-    }
-  }
-
   &:deep(textarea) {
     resize: none;
     background-color: transparent;
@@ -257,16 +241,6 @@ function handleRecover() {
 
   100% {
     opacity: 1;
-  }
-}
-
-@keyframes borderRotate {
-  0% {
-    background-position: 0% 0%;
-  }
-
-  100% {
-    background-position: 400% 0%;
   }
 }
 </style>

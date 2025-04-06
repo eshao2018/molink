@@ -7,9 +7,9 @@ import { useRouter } from 'vue-router'
 
 //article
 export const id = ref('')
-export const style = ref(styleList[9])
 export const savedResults = ref({})
 //form-result-item
+export const style = ref(styleList[9])
 export const resultId = ref()
 export const inputText = ref('')
 export const title = ref('')
@@ -47,7 +47,6 @@ watch(style, () => {
 watch(savedResults, () => {
   localStorage[`article-${id.value}`] = JSON.stringify({
     id: id.value,
-    style: style.value,
     results: { ...savedResults.value }
   })
 }, { deep: true })
@@ -65,7 +64,6 @@ export function init(idParam) {
       t = JSON.parse(localStorage[`article-${idParam}`])
     } catch { }
     id.value = idParam
-    style.value = t.style || style.value
     savedResults.value = t.results || {}
 
     let firstResult = {}
@@ -77,6 +75,7 @@ export function init(idParam) {
     title.value = firstResult.title || ''
     inputText.value = firstResult.inputText || ''
     result.value = firstResult.result || []
+    style.value = firstResult.style || style.value
   } else {
     id.value = new Date().getTime()
     try {
@@ -102,7 +101,8 @@ export function handleSave() {
       title: title.value,
       inputText: inputText.value,
       result: result.value,
-      savedTime: savedTime.value
+      savedTime: savedTime.value,
+      style: style.value
     }
     savedResults.value = t
     ElMessage.success('保存成功')
@@ -123,6 +123,7 @@ export function handleChooseResult(rid) {
       title.value = t.title
       inputText.value = t.inputText
       result.value = t.result || []
+      style.value = t.style || style.value
     }
   }
 }

@@ -50,7 +50,10 @@
           <div class="content">
             <div class="title" v-if="item.title">{{ item.title }}</div>
             <div class="text">{{ item.result[0].rewrite }}</div>
-            <div class="time">{{ new Date(item.savedTime).format('yyyy.MM.dd hh:mm:ss') }}</div>
+            <div class="time">
+              {{ new Date(item.savedTime).format('yyyy.MM.dd hh:mm:ss') }}
+              <span>{{ item.style?.name }}</span>
+            </div>
           </div>
           <div class="actions">
             <el-button class="btn" circle type="danger" @click.stop="handleRemove(item.id)" :icon="Delete"></el-button>
@@ -263,6 +266,12 @@ const handleCopy = async () => {
 
       .time {
         margin-top: 5px;
+        display: flex;
+        font-size: 13px;
+
+        span {
+          margin-left: 10px;
+        }
       }
     }
 
