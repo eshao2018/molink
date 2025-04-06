@@ -127,12 +127,14 @@ function handleDelete(id, index) {
       align-items: center;
 
       .btn {
+        pointer-events: none;
         opacity: 0;
         transition: all .3s;
       }
 
       &:hover {
         .btn {
+          pointer-events: all;
           opacity: 1;
         }
       }
