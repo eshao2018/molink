@@ -128,6 +128,10 @@ export function handleChooseResult(rid) {
   }
 }
 
+let cancelProcess = false
+export function handleCancelProcess() {
+  cancelProcess = true
+}
 export async function handleProcess() {
   if (!aiConfig.value.apiKey) {
     ElMessage.error('请先填写API key')
@@ -175,6 +179,9 @@ export async function handleProcess() {
     let resultStr = ''
 
     for await (const chunk of completion) {
+      if (cancelProcess) {
+        throw { message: "已取消" }
+      }
       const content = chunk.choices[0]?.delta?.content || ''
       const reasoning_content = chunk.choices[0]?.delta?.reasoning_content || ''
       if (reasoning_content) {
@@ -201,6 +208,7 @@ export async function handleProcess() {
     console.log(err)
     ElMessage.error(err.message || JSON.stringify(err))
   } finally {
+    cancelProcess = false
     loading.value = false
   }
 }

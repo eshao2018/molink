@@ -8,7 +8,8 @@
     </div>
     <div class="label">写作
       <div class="actions">
-        <el-button v-if="Object.keys(savedResults).length" class="btn" type="info" @click="showHistoryDialog = true">{{
+        <el-button v-if="Object.keys(savedResults).length" class="btn" :disabled="loading" type="info"
+          @click="showHistoryDialog = true">{{
       Object.keys(savedResults).length }}个版本</el-button>
         <el-button v-if="result.length" @click="handleCopy" class="btn copy-btn" type="success">复制</el-button>
         <el-button v-if="result.length" type="danger" class="btn" :loading="loading" :disabled="!inputText"
@@ -17,6 +18,9 @@
         </el-button>
         <el-button v-else class="btn" type="primary" :loading="loading" @click="handleProcess" :disabled="!inputText">
           开始风格淬炼
+        </el-button>
+        <el-button v-if="loading" class="btn stop-btn" @click="handleCancelProcess">
+          <span></span>
         </el-button>
       </div>
     </div>
@@ -71,7 +75,8 @@ import {
   title, titleLoading, inputText,
   handleGetTitle, resultPureText, loading,
   handleProcess, style, result, init,
-  savedResults, handleRemove, handleChooseResult
+  savedResults, handleRemove, handleChooseResult,
+  handleCancelProcess
 } from './store'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
@@ -138,6 +143,26 @@ const handleCopy = async () => {
 
         &.is-disabled {
           opacity: 0.5;
+        }
+      }
+
+      .stop-btn {
+        border: none;
+        padding: 0;
+        aspect-ratio: 1;
+
+        &:hover {
+          opacity: 0.7;
+        }
+
+        &:active {
+          opacity: 0.5;
+        }
+
+        span {
+          width: 10px;
+          height: 10px;
+          background-color: #ffffff;
         }
       }
     }
